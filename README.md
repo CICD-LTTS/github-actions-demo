@@ -1,2 +1,2 @@
 # github-actions-demo
-Just trying github actions
+Run github action for every 5 mins.
