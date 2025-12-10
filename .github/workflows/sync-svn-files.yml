@@ -1,0 +1,48 @@
+
+name: test-svn-sync
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: self-hosted
+    steps:
+      - name: Clone public repo without token
+        shell: powershell
+        run: |
+          git clone --depth 1 https://github.com/Kare-Rakesh-ltts/github-actions-demo.git demo-repo
+          dir demo-repo
+
+      - name: Ensure SVN is installed
+        shell: powershell
+        run: |
+          if (-not (Get-Command svn.exe -ErrorAction SilentlyContinue)) {
+            Write-Host "ERROR: svn.exe not found. Install Subversion CLI (e.g., via TortoiseSVN CLI or Chocolatey)."
+            exit 1
+          }
+          svn --version
+
+      - name: Verify Python
+        shell: powershell
+        run: python --version
+
+      - name: Build commit message
+        id: commitmsg
+        shell: powershell
+        run: |
+          $msg = "Automated sync from $env:COMPUTERNAME on $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+          Write-Host "COMMIT_MESSAGE=$msg" >> $env:GITHUB_OUTPUT
+
+      - name: Run Python sync script
+        shell: powershell
+        working-directory: repo
+        env:
+          SOURCE_PATH: 'C:\Users\40018941\Downloads\HONDA-DOC'
+          SVN_URL: 'https://getsl00087/svn/TEST_SVN1/trunk'
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          COMMIT_MESSAGE: ${{ steps.commitmsg.outputs.COMMIT_MESSAGE }}
+        run: |
+          python scripts/svn_copy_and_commit.py
