@@ -1,0 +1,20 @@
+
+name: Run GitHub Actions
+
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  push:
+  workflow_dispatch:
+
+jobs:
+  github-action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log UTC time
+        run: date -u +"%Y-%m-%d %H:%M:%S UTC"
+
+      - name: Print a message
+        run: echo "GitHub Actions! Running successfully"
