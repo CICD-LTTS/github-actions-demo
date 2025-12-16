@@ -1,0 +1,15 @@
+
+name: Self-Hosted Runner Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - name: Print system info
+        run: |
+          echo "Runner is working!"
+          systeminfo
+          curl.exe -I https://api.github.com
