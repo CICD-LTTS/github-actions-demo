@@ -1,4 +1,5 @@
-name: pipeline
+name: check
+run-name: check-pipeline
 
 on:
   pull_request:
@@ -6,7 +7,7 @@ on:
       - main
 
 jobs:
-  check:
+  run-tests:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: ${{ github.workspace }}
