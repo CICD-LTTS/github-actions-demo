@@ -1,2 +1,2 @@
 # github-actions-demo
-Just trying github actions on test branch
+Run github action for every 5 mins.
