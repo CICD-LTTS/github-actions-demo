@@ -9,51 +9,9 @@ on:
     branches: [ main ]
 
 jobs:
-  tests:
-    name: Run tests
-    runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: ${{ github.workspace }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run pytest
-        run: |
-          mkdir -p reports
-          pytest tests -vv --disable-warnings --junitxml=reports/junit.xml | tee job_output.txt
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts
-          path: |
-            job_output.txt
-            reports/junit.xml
-          retention-days: 1
-
   run_script:
-    name: Run application script
+    name: compile-python-script
     runs-on: ubuntu-latest
-    needs: tests
     env:
       PYTHONPATH: ${{ github.workspace }}
 
@@ -82,11 +40,51 @@ jobs:
         run: |
           mkdir -p code_outputs
           echo "Running scripts/calculator.py ..."
-          python scripts/calculator.py | tee outputs/script_output.txt
+          python scripts/calculator.py
 
       - name: Upload all outputs
         uses: actions/upload-artifact@v4
         with:
           name: calculator-outputs
-          path: outputs/**
+          path: code_outputs/**
+          retention-days: 1
+
+  tests:
+    needs: run_script
+    name: Run tests
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: |
+          mkdir -p test-reports
+          pytest tests -vv --disable-warnings --junitxml=test-reports/results.xml
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-outputs
+          path: test-reports/**
           retention-days: 1
