@@ -1,0 +1,45 @@
+
+name: gate
+
+on:
+  workflow_run:
+    workflows: ["check"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.payload.workflow_run.head_sha;
+
+            const { data: prs } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} is:pr sha:${sha}`
+            });
+            if (!prs.items.length) return;
+
+            for (const item of prs.items) {
+              const number = item.number;
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+
+              if (!pr.labels.map(l => l.name).includes('merge')) continue;
+
+              const reviews = await github.rest.pulls.listReviews({ owner, repo, pull_number: number });
+              if (reviews.data.filter(r => r.state === 'APPROVED').length < 1) continue;
+
+              if (!(pr.mergeable && pr.mergeable_state !== 'dirty')) continue;
+
+              await github.rest.pulls.merge({
+                owner, repo, pull_number: number,
+                merge_method: 'merge',
+                commit_title: `Merge PR #${number}: ${pr.title}`
+              });
