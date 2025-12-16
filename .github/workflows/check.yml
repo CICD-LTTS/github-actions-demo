@@ -36,3 +36,4 @@ jobs:
           path: |
             job_output.txt
             reports/junit.xml
+          retention-days: 1
