@@ -41,7 +41,7 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         run: |
-          $svnUrl = "svn://172.17.110.132/CREATE_SVN_REPO/trunk"
+          $svnUrl = "svn://100.127.6.223/CREATE_SVN_REPO/trunk"
           Write-Host "Cleaning previous working copy in repo..."
           if (Test-Path ".\svn_wc") { Remove-Item ".\svn_wc" -Recurse -Force }
           New-Item -ItemType Directory -Path ".\svn_wc" | Out-Null
